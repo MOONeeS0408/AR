@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using Vuforia;
@@ -8,17 +7,11 @@ public class Move : MonoBehaviour
 {
     public GameObject modelo;
     public ObserverBehaviour[] imageTarget;
-    public int actual;
+    public int actual = 0;
     public float speed = 1.0f;
     private bool isMoving = false;
-    
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    public void moveToNextMarker ()
+    public void moveToNextMarker()
     {
         if (!isMoving)
         {
@@ -29,43 +22,44 @@ public class Move : MonoBehaviour
     private IEnumerator MoveModel()
     {
         isMoving = true;
-        ObserverBehaviour target = GetNextDetectedTarget();    
+
+        ObserverBehaviour target = GetNextDetectedTarget();
+
+        //Si no encuentra el target
         if (target == null)
         {
-            isMoving= false;
+            isMoving = false;
             yield break;
         }
-        Vector3 startPosition = modelo.transform.position; //posicion inicial del modelo
-        Vector3 endPosition = target.transform.position; //posicion del siguiente target
+
+        Vector3 startPosition = modelo.transform.position;
+        Vector3 endPosition = target.transform.position;
 
         float journey = 0;
 
-        while(journey<=1f) {
-            journey+=Time.deltaTime*speed;
+        while (journey <= 1f)
+        {
+            journey += Time.deltaTime * speed;
             modelo.transform.position = Vector3.Lerp(startPosition, endPosition, journey);
-            //posicion inicial, posicion final, velocidad
             yield return null;
         }
 
-        actual = (actual + 1) % imageTarget.Length;
-        isMoving= false;
+        // Avanza al siguiente target en la secuencia
+        actual++;
+
+        isMoving = false;
     }
 
     private ObserverBehaviour GetNextDetectedTarget()
     {
-        foreach (ObserverBehaviour target in imageTarget)
+        if (actual < imageTarget.Length)
         {
-            if(target !=null && (target.TargetStatus.Status==Status.TRACKED || target.TargetStatus.Status==Status.EXTENDED_TRACKED))
+            ObserverBehaviour target = imageTarget[actual];
+            if (target != null && (target.TargetStatus.Status == Status.TRACKED || target.TargetStatus.Status == Status.EXTENDED_TRACKED))
             {
                 return target;
             }
         }
         return null;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
